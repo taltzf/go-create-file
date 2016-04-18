@@ -158,10 +158,23 @@ func CreateRandomHashedFileWithHashSize(testDir string, filename string, filesiz
 		i += n
 	}
 	if i != filesize {
-		errMsg := fmt.Sprintf("Error - writing to file %v, size mismatch expectation, expected=%v, got=%v\n", filename, filesize, i)
+		errMsg := fmt.Sprintf("Error - writing to file %v, size mismatch, expected=%v, got=%v\n", filename, filesize, i)
 		fmt.Printf(errMsg)
 		return i, nil, errors.New(errMsg)
 	}
 
 	return i, hash.Sum(nil), nil
+}
+
+func HashData(data []byte, size int64) ([]byte, error) {
+	var err error
+	hash := sha512.New()
+	var i int64
+	var n int
+	for i < size && err == nil {
+		n, err = hash.Write(data[i : i+buffersize])
+		i += int64(n)
+	}
+	return hash.Sum(nil), err
+
 }

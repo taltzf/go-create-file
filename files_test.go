@@ -6,7 +6,9 @@ import (
 )
 
 func TestCreateNewFile(t *testing.T) {
-	_, err := CreateNewFile("", "temp.txt", 1024)
+	filename := "temp.txt"
+	filesize := int64(1024)
+	_, err := CreateNewFile("", filename, filesize)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -14,18 +16,22 @@ func TestCreateNewFile(t *testing.T) {
 
 func TestReadFile(t *testing.T) {
 	var err error
-	_, err = CreateNewFile("", "temp.txt", 1024)
+	filename := "temp.txt"
+	filesize := int64(1024)
+	_, err = CreateNewFile("", filename, filesize)
 	if err != nil {
 		t.Fatal(err)
 	}
-	_, err = ReadFile("", "temp.txt", 1024)
+	_, err = ReadFile("", filename, filesize)
 	if err != nil {
 		t.Fatal(err)
 	}
 }
 
 func TestCreateRandomFile(t *testing.T) {
-	_, err := CreateRandomFile("", "temp.txt", 2048)
+	filename := "temp.txt"
+	filesize := int64(2048)
+	_, err := CreateRandomFile("", filename, filesize)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -33,7 +39,8 @@ func TestCreateRandomFile(t *testing.T) {
 
 func TestCreateRandomHashedFile(t *testing.T) {
 	filename := "hashed.txt"
-	size, hashSum, err := CreateRandomHashedFile("", "hashed.txt", 2048)
+	filesize := int64(2048)
+	size, hashSum, err := CreateRandomHashedFile("", filename, filesize)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -42,12 +49,13 @@ func TestCreateRandomHashedFile(t *testing.T) {
 
 func TestReadRandomHashedFile(t *testing.T) {
 	filename := "hashed.txt"
-	writesize, writeHashSum, err := CreateRandomHashedFile("", "temp.txt", 2048)
+	filesize := int64(2048)
+	writesize, writeHashSum, err := CreateRandomHashedFile("", filename, filesize)
 	if err != nil {
 		t.Fatal(err)
 	}
 	t.Logf("Write: File=%v, Size=%v, Hash=%v", filename, writesize, hex.EncodeToString(writeHashSum))
-	readsize, readHashSum, err := ReadHashedFile("", "temp.txt", 2048)
+	readsize, readHashSum, err := ReadHashedFile("", filename, filesize)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -59,17 +67,43 @@ func TestReadRandomHashedFile(t *testing.T) {
 
 func TestReadRandomHashedFileWithHashSize(t *testing.T) {
 	filename := "hashed.txt"
-	writesize, writeHashSum, err := CreateRandomHashedFileWithHashSize("", "temp.txt", 2048, 1024)
+	filesize := int64(2048)
+	hashsize := int64(1024)
+	writesize, writeHashSum, err := CreateRandomHashedFileWithHashSize("", filename, filesize, hashsize)
 	if err != nil {
 		t.Fatal(err)
 	}
 	t.Logf("Write: File=%v, Size=%v, Hash=%v", filename, writesize, hex.EncodeToString(writeHashSum))
-	readsize, readHashSum, err := ReadHashedFile("", "temp.txt", 1024)
+	readsize, readHashSum, err := ReadHashedFile("", filename, hashsize)
 	if err != nil {
 		t.Fatal(err)
 	}
 	t.Logf("Read: File=%v, Size=%v, Hash=%v", filename, readsize, hex.EncodeToString(readHashSum))
 	if hex.EncodeToString(writeHashSum) != hex.EncodeToString(readHashSum) {
+		t.Fatal("Write and Read Hash doesn't match")
+	}
+}
+
+func TestReadRandomHashedFileWithHashSize2(t *testing.T) {
+	filename := "hashed.txt"
+	filesize := int64(2048)
+	hashsize := int64(1024)
+	writesize, writeHashSum, err := CreateRandomHashedFileWithHashSize("", filename, filesize, hashsize)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Logf("Write: File=%v, Size=%v, Hash=%v", filename, writesize, hex.EncodeToString(writeHashSum))
+
+	data, err := ReadFile("", filename, hashsize)
+	if err != nil {
+		t.Fatal(err)
+	}
+	hashed, err := HashData(data, hashsize)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Logf("Read: File=%v, Size=%v, Hash=%v", filename, hashsize, hex.EncodeToString(hashed))
+	if hex.EncodeToString(writeHashSum) != hex.EncodeToString(hashed) {
 		t.Fatal("Write and Read Hash doesn't match")
 	}
 }
